@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "KARIGAR",
+    "slug": "karigar-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1E1E1E"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.karigar.artisan",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "KARIGAR needs microphone access to record your product voice note.",
+        "NSCameraUsageDescription": "KARIGAR needs camera access to take product photos.",
+        "NSPhotoLibraryUsageDescription": "KARIGAR needs photo library access to upload product images."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E8622A",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "com.karigar.artisan",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-av",
+      "expo-image-picker"
+    ]
+  }
+}

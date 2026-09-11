@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./language.css";
 
 :root { --ink: #252321; --muted: #7d7771; --paper: #fbfaf8; --line: #ebe4dc; --orange: #d96732; --orange-soft: #f8ece4; --green: #4c8461; --indigo: #6877a7; }
 * { box-sizing: border-box; }

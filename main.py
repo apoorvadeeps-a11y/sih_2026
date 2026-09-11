@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
 from routers import image as image_router
 from routers import price as price_router
@@ -25,3 +26,14 @@ app.include_router(products_router.router)
 @app.get("/")
 def health_check():
     return {"status": "ok", "message": "Backend unblocked"}
+
+@app.get("/config/status")
+def config_status():
+    return {
+        "status": "ok",
+        "providers": {
+            "huggingface": bool(os.getenv("HUGGINGFACE_API_KEY")),
+            "replicate": bool(os.getenv("REPLICATE_API_TOKEN")),
+            "supabase": bool(os.getenv("SUPABASE_URL") and os.getenv("SUPABASE_SERVICE_KEY")),
+        },
+    }

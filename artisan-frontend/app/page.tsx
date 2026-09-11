@@ -51,7 +51,7 @@ export default function Home() {
       const response = await fetch('/api/image/enhance', { method: 'POST', body });
       if (!response.ok) throw new Error(await response.text());
       const data = await response.json(); setEnhancedImage(data.image_url); setNotice('AI cleaned the image and prepared a marketplace-ready white background.');
-    } catch { setError('Image enhancement failed. Check that the backend is live and its AI keys are configured.'); } finally { setBusy(''); }
+    } catch (failure) { setError(await apiError(failure, 'Image enhancement failed. Check that the backend is live and its AI keys are configured.')); } finally { setBusy(''); }
   };
 
   const startRecording = async () => {
@@ -76,7 +76,7 @@ export default function Home() {
       const response = await fetch('/api/voice/to-catalog', { method: 'POST', body });
       if (!response.ok) throw new Error(await response.text());
       const data = await response.json() as Catalog; setCatalog(data); setCategory(data.category || 'Pottery'); setNotice('Voice converted into an English and Hindi catalogue draft.');
-    } catch { setError('Catalog generation failed. Confirm the backend AI credentials and try again.'); } finally { setBusy(''); }
+    } catch (failure) { setError(await apiError(failure, 'Catalog generation failed. Confirm the backend AI credentials and try again.')); } finally { setBusy(''); }
   };
 
   const calculatePrice = async () => {
@@ -86,7 +86,7 @@ export default function Home() {
       const response = await fetch('/api/price/calculate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ material_cost: Number(materialCost), labor_hours: Number(laborHours), category, title: catalog.title, description: catalog.description, craft_technique: catalog.craft_technique }) });
       if (!response.ok) throw new Error(await response.text());
       setPrice(await response.json()); setNotice('Pricing assistant calculated a competitive suggestion from your costs and catalogue details.');
-    } catch { setError('Pricing failed. Enter valid material and labor costs and confirm the backend is live.'); } finally { setBusy(''); }
+    } catch (failure) { setError(await apiError(failure, 'Pricing failed. Enter valid material and labor costs and confirm the backend is live.')); } finally { setBusy(''); }
   };
 
   const saveDraft = () => {
@@ -106,6 +106,18 @@ export default function Home() {
       </section>
     </div>
   </main>;
+}
+
+async function apiError(failure: unknown, fallback: string) {
+  if (failure instanceof Error && failure.message) {
+    try {
+      const parsed = JSON.parse(failure.message);
+      return parsed.detail ? `${fallback} ${parsed.detail}` : fallback;
+    } catch {
+      return fallback;
+    }
+  }
+  return fallback;
 }
 
 function Studio(props: { imagePreview: string; enhancedImage: string; selectImage: (event: ChangeEvent<HTMLInputElement>) => void; enhanceImage: () => void; audioFile: File | null; setAudioFile: (value: File) => void; recording: boolean; startRecording: () => void; stopRecording: () => void; catalog: Catalog | null; catalogFromVoice: () => void; materialCost: string; setMaterialCost: (value: string) => void; laborHours: string; setLaborHours: (value: string) => void; category: string; setCategory: (value: string) => void; price: PriceResult | null; calculatePrice: () => void; saveDraft: () => void; busy: string }) {

@@ -23,3 +23,5 @@ test_failover_verification.py
 .vscode/
 .idea/
 *.swp
+.vercel
+.env*

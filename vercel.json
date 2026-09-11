@@ -1,14 +1,6 @@
 {
-  "builds": [
-    {
-      "src": "main.py",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "main.py"
-    }
-  ]
+  "framework": "nextjs",
+  "installCommand": "cd artisan-frontend && npm ci",
+  "buildCommand": "cd artisan-frontend && npm run build",
+  "outputDirectory": "artisan-frontend/.next"
 }

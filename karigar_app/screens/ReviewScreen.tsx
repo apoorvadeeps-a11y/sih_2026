@@ -1,238 +1,144 @@
 import React, { useState } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  TextInput, Image, ActivityIndicator, Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, RADIUS, SHADOW } from '../constants/theme';
+import { COLORS } from '../constants/theme';
 import { useAppStore } from '../store/useAppStore';
-import { calculatePrice, createProduct } from '../services/api';
+
+const sampleImages = [
+  'https://images.unsplash.com/photo-1517705008128-361805f42e86?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1493106641515-6b5631de4bb9?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=900&q=80',
+];
 
 export default function ReviewScreen({ navigation }: any) {
-  const {
-    currentCatalog, enhancedImageUrl, selectedLanguage, addProduct,
-  } = useAppStore();
+  const { currentCatalog, currentImageUri, setCurrentCatalog, addProduct } = useAppStore();
+  const [productName, setProductName] = useState(currentCatalog?.title_hi ?? 'मिट्टी का बर्तन');
+  const [description, setDescription] = useState(currentCatalog?.description_hi ?? 'मिट्टी से बनी पारंपरिक कढ़ाई कलाकृति...');
+  const [category, setCategory] = useState(currentCatalog?.category ?? 'मिट्टी के Crafted Pottery');
 
-  const [materialCost, setMaterialCost] = useState('');
-  const [laborHours, setLaborHours]     = useState('');
-  const [pricing, setPricing]           = useState<any>(null);
-  const [loading, setLoading]           = useState(false);
-  const [saving, setSaving]             = useState(false);
+  const saveAndNext = () => {
+    const nextCatalog = {
+      ...(currentCatalog ?? {}),
+      title: productName,
+      title_hi: productName,
+      description: description,
+      description_hi: description,
+      category,
+      craft_technique: currentCatalog?.craft_technique ?? 'Terracotta',
+      source_language: currentCatalog?.source_language ?? 'hi',
+    };
 
-  if (!currentCatalog) {
-    return (
-      <View style={styles.empty}>
-        <Ionicons name="alert-circle-outline" size={48} color={COLORS.textMuted} />
-        <Text style={styles.emptyText}>No catalog yet. Go back and record first.</Text>
-      </View>
-    );
-  }
+    setCurrentCatalog(nextCatalog);
+    addProduct({
+      id: `product-${Date.now()}`,
+      sku: 'KAR-' + Math.floor(Math.random() * 900 + 100),
+      title: productName,
+      title_hi: productName,
+      description,
+      description_hi: description,
+      category,
+      craft_technique: 'Terracotta',
+      material_cost: 180,
+      labor_hours: 3,
+      base_cost: 540,
+      suggested_price: 950,
+      confidence_band: 'High',
+      source_language: 'hi',
+      image_url: currentImageUri ?? sampleImages[0],
+      created_at: new Date().toISOString(),
+    });
 
-  const lang = selectedLanguage.code;
-  const displayTitle = lang === 'hi'
-    ? currentCatalog.title_hi ?? currentCatalog.title
-    : lang === 'en'
-    ? currentCatalog.title
-    : currentCatalog.title_localized ?? currentCatalog.title;
-
-  const displayDesc = lang === 'hi'
-    ? currentCatalog.description_hi ?? currentCatalog.description
-    : lang === 'en'
-    ? currentCatalog.description
-    : currentCatalog.description_localized ?? currentCatalog.description;
-
-  const getPrice = async () => {
-    if (!materialCost || !laborHours) {
-      Alert.alert('Please enter', 'Material cost and labour hours are required.');
-      return;
-    }
-    setLoading(true);
-    try {
-      const result = await calculatePrice(
-        parseFloat(materialCost),
-        parseFloat(laborHours),
-        currentCatalog.category,
-        currentCatalog.title,
-        enhancedImageUrl ?? undefined,
-      );
-      setPricing(result);
-    } catch (e) {
-      Alert.alert('Error', 'Could not calculate price. Try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const saveProduct = async () => {
-    if (!pricing) { Alert.alert('Get price first'); return; }
-    setSaving(true);
-    try {
-      const product = await createProduct({
-        ...currentCatalog,
-        material_cost: parseFloat(materialCost),
-        labor_hours: parseFloat(laborHours),
-        image_url: enhancedImageUrl,
-      });
-      addProduct(product);
-      Alert.alert('Saved! 🎉', 'Your product is saved.', [
-        { text: 'View Products', onPress: () => navigation.navigate('Products') },
-        { text: 'Export to GeM/ONDC', onPress: () => navigation.navigate('Export') },
-      ]);
-    } catch (e) {
-      Alert.alert('Error', 'Could not save product.');
-    } finally {
-      setSaving(false);
-    }
+    navigation.navigate('Products');
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
-        <Text style={styles.stepTag}>STEP 2 OF 2 — दूसरा कदम</Text>
-        <Text style={styles.title}>Review & Price</Text>
-      </View>
-
-      {/* Enhanced image */}
-      {enhancedImageUrl && (
-        <View style={styles.card}>
-          <Text style={styles.cardLabel}>📷 Enhanced Photo — साफ़ तस्वीर</Text>
-          <Image source={{ uri: enhancedImageUrl }} style={styles.productImage} resizeMode="contain" />
-          <View style={styles.chip}>
-            <Ionicons name="checkmark-circle" size={14} color={COLORS.success} />
-            <Text style={styles.chipText}>Background removed · White canvas</Text>
-          </View>
-        </View>
-      )}
-
-      {/* Generated catalog */}
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>📝 AI-Generated Listing</Text>
-
-        <Text style={styles.fieldLabel}>Title (English)</Text>
-        <Text style={styles.fieldValue}>{currentCatalog.title}</Text>
-
-        {currentCatalog.title_hi && (
-          <>
-            <Text style={styles.fieldLabel}>शीर्षक (Hindi)</Text>
-            <Text style={styles.fieldValue}>{currentCatalog.title_hi}</Text>
-          </>
-        )}
-
-        <Text style={styles.fieldLabel}>Description</Text>
-        <Text style={styles.fieldValueSmall}>{currentCatalog.description}</Text>
-
-        <View style={styles.tagsRow}>
-          <View style={styles.tag}><Text style={styles.tagText}>{currentCatalog.category}</Text></View>
-          <View style={styles.tag}><Text style={styles.tagText}>{currentCatalog.craft_technique}</Text></View>
+    <View style={styles.container}>
+      <View style={styles.topBar}>
+        <Text style={styles.time}>9:41</Text>
+        <View style={styles.statusIcons}>
+          <Ionicons name="cellular" size={14} color="#1A1A1A" />
+          <Ionicons name="wifi" size={14} color="#1A1A1A" />
+          <Ionicons name="battery-full" size={16} color="#1A1A1A" />
         </View>
       </View>
 
-      {/* Pricing inputs */}
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>💰 Smart Pricing — सही दाम</Text>
+      <View style={styles.headerRow}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={22} color="#1A1A1A" />
+        </TouchableOpacity>
+        <Text style={styles.pageTitle}>Review Details • विचार जाँच</Text>
+        <Ionicons name="flash" size={22} color="#1A1A1A" />
+      </View>
 
-        <View style={styles.inputRow}>
-          <View style={{ flex: 1, marginRight: 8 }}>
-            <Text style={styles.inputLabel}>Material Cost (₹)</Text>
-            <TextInput
-              style={styles.input}
-              value={materialCost}
-              onChangeText={setMaterialCost}
-              keyboardType="numeric"
-              placeholder="e.g. 200"
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.inputLabel}>Labour Hours</Text>
-            <TextInput
-              style={styles.input}
-              value={laborHours}
-              onChangeText={setLaborHours}
-              keyboardType="numeric"
-              placeholder="e.g. 4"
-            />
-          </View>
+      <View style={styles.content}>
+        <View style={styles.photoRow}>
+          {(currentImageUri ? [currentImageUri] : sampleImages).map((uri, index) => (
+            <Image key={`${uri}-${index}`} source={{ uri }} style={styles.thumb} resizeMode="cover" />
+          ))}
         </View>
 
-        <TouchableOpacity style={styles.priceBtn} onPress={getPrice} disabled={loading}>
-          {loading
-            ? <ActivityIndicator color={COLORS.white} />
-            : <Text style={styles.priceBtnText}>Calculate Price — दाम लगाएं</Text>}
+        <View style={styles.verifyBox}>
+          <Ionicons name="checkmark-circle" size={18} color={COLORS.success} />
+          <Text style={styles.verifyText}>AI identified: Terracotta Pottery • मिट्टी के बर्तन</Text>
+        </View>
+
+        <TouchableOpacity style={styles.aiBox}>
+          <Ionicons name="mic-circle" size={26} color={COLORS.primary} />
+          <Text style={styles.aiText}>Speak to edit or describe your product</Text>
         </TouchableOpacity>
 
-        {pricing && (
-          <View style={styles.priceResult}>
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Base Cost</Text>
-              <Text style={styles.priceVal}>₹{pricing.base_cost}</Text>
-            </View>
-            <View style={[styles.priceRow, styles.highlightRow]}>
-              <Text style={styles.suggestedLabel}>Suggested Price</Text>
-              <Text style={styles.suggestedVal}>₹{pricing.suggested_price}</Text>
-            </View>
-            <View style={styles.confidenceRow}>
-              <Ionicons name="analytics-outline" size={14} color={COLORS.success} />
-              <Text style={styles.confidenceText}>Confidence: {pricing.confidence_band}</Text>
-            </View>
+        <View style={styles.fieldBlock}>
+          <View style={styles.fieldLabelRow}>
+            <Text style={styles.fieldLabel}>PRODUCT NAME • सामान</Text>
+            <Ionicons name="create-outline" size={16} color="#4B4B4B" />
           </View>
-        )}
+          <TextInput value={productName} onChangeText={setProductName} style={styles.fieldInput} />
+        </View>
+
+        <View style={styles.fieldBlock}>
+          <View style={styles.fieldLabelRow}>
+            <Text style={styles.fieldLabel}>DESCRIPTION • विवरण</Text>
+            <Ionicons name="create-outline" size={16} color="#4B4B4B" />
+          </View>
+          <TextInput value={description} onChangeText={setDescription} multiline style={[styles.fieldInput, styles.multiLine]} />
+        </View>
+
+        <View style={styles.fieldBlock}>
+          <View style={styles.fieldLabelRow}>
+            <Text style={styles.fieldLabel}>CATEGORY • श्रेणी</Text>
+            <Ionicons name="create-outline" size={16} color="#4B4B4B" />
+          </View>
+          <TextInput value={category} onChangeText={setCategory} style={styles.fieldInput} />
+        </View>
+
+        <TouchableOpacity style={styles.primaryBtn} onPress={saveAndNext}>
+          <Text style={styles.primaryBtnText}>Next: Set Price • मूल्य निर्धारित करें →</Text>
+        </TouchableOpacity>
       </View>
-
-      {/* Save */}
-      <TouchableOpacity style={styles.saveBtn} onPress={saveProduct} disabled={saving} activeOpacity={0.85}>
-        <LinearGradient
-          colors={[COLORS.primary, COLORS.primaryDark]}
-          style={styles.saveGradient}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-        >
-          {saving
-            ? <ActivityIndicator color={COLORS.white} />
-            : <>
-                <Ionicons name="cloud-upload-outline" size={20} color={COLORS.white} style={{ marginRight: 8 }} />
-                <Text style={styles.saveText}>Save Product — सहेजें</Text>
-              </>}
-        </LinearGradient>
-      </TouchableOpacity>
-
-      <View style={{ height: 60 }} />
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container:     { flex: 1, backgroundColor: COLORS.screenBg, padding: 16 },
-  empty:         { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 },
-  emptyText:     { fontSize: 14, color: COLORS.textMuted, textAlign: 'center', marginTop: 12 },
-  header:        { marginBottom: 20, marginTop: 12 },
-  stepTag:       { fontSize: 11, color: COLORS.primary, fontWeight: '700', letterSpacing: 1.5 },
-  title:         { fontSize: 26, fontWeight: '900', color: COLORS.text, marginTop: 4 },
-  card:          { backgroundColor: COLORS.white, borderRadius: RADIUS.lg, padding: 18, marginBottom: 14, ...SHADOW.sm },
-  cardLabel:     { fontSize: 14, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
-  productImage:  { width: '100%', height: 220, borderRadius: RADIUS.md, backgroundColor: '#f5f5f5', marginBottom: 10 },
-  chip:          { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EAFAF1', padding: 8, borderRadius: RADIUS.md },
-  chipText:      { fontSize: 12, color: COLORS.success, marginLeft: 6 },
-  fieldLabel:    { fontSize: 11, color: COLORS.textMuted, fontWeight: '600', letterSpacing: 1, marginTop: 10 },
-  fieldValue:    { fontSize: 16, fontWeight: '700', color: COLORS.text, marginTop: 2 },
-  fieldValueSmall: { fontSize: 13, color: COLORS.textLight, marginTop: 2, lineHeight: 20 },
-  tagsRow:       { flexDirection: 'row', gap: 8, marginTop: 12 },
-  tag:           { backgroundColor: '#FFF3EE', paddingHorizontal: 12, paddingVertical: 6, borderRadius: RADIUS.full },
-  tagText:       { fontSize: 12, color: COLORS.primary, fontWeight: '600' },
-  inputRow:      { flexDirection: 'row', marginBottom: 14 },
-  inputLabel:    { fontSize: 12, color: COLORS.textMuted, marginBottom: 4 },
-  input:         { borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: 12, fontSize: 15, backgroundColor: COLORS.screenBg },
-  priceBtn:      { backgroundColor: COLORS.primary, borderRadius: RADIUS.md, padding: 14, alignItems: 'center' },
-  priceBtnText:  { color: COLORS.white, fontWeight: '700', fontSize: 14 },
-  priceResult:   { marginTop: 14, backgroundColor: COLORS.screenBg, borderRadius: RADIUS.md, padding: 14 },
-  priceRow:      { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  priceLabel:    { fontSize: 13, color: COLORS.textMuted },
-  priceVal:      { fontSize: 13, fontWeight: '600', color: COLORS.text },
-  highlightRow:  { backgroundColor: '#FFF3EE', padding: 10, borderRadius: RADIUS.md },
-  suggestedLabel:{ fontSize: 15, fontWeight: '700', color: COLORS.text },
-  suggestedVal:  { fontSize: 18, fontWeight: '900', color: COLORS.primary },
-  confidenceRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
-  confidenceText:{ fontSize: 12, color: COLORS.success, marginLeft: 4 },
-  saveBtn:       { borderRadius: RADIUS.full, overflow: 'hidden', marginTop: 4 },
-  saveGradient:  { paddingVertical: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-  saveText:      { fontSize: 16, fontWeight: '700', color: COLORS.white },
+  container: { flex: 1, backgroundColor: '#F5F2EE', alignItems: 'center' },
+  topBar: { width: '100%', paddingTop: 10, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  time: { fontSize: 16, fontWeight: '700', color: '#1A1A1A' },
+  statusIcons: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  headerRow: { width: '100%', paddingHorizontal: 18, paddingTop: 16, paddingBottom: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  pageTitle: { fontSize: 18, fontWeight: '700', color: '#181818' },
+  content: { width: '100%', paddingHorizontal: 18, paddingTop: 8, paddingBottom: 20 },
+  photoRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  thumb: { width: 78, height: 84, borderRadius: 12, borderWidth: 1, borderColor: '#DAD2CD' },
+  verifyBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EFFAF2', borderRadius: 12, borderWidth: 1, borderColor: '#A9DABE', paddingHorizontal: 12, paddingVertical: 10, marginBottom: 12 },
+  verifyText: { marginLeft: 8, color: '#2D7A4F', fontSize: 12.5, fontWeight: '600', flexShrink: 1 },
+  aiBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF5F1', borderWidth: 1.5, borderColor: '#E7A183', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 12, marginBottom: 12 },
+  aiText: { marginLeft: 10, fontSize: 13, color: '#D66236', flexShrink: 1 },
+  fieldBlock: { backgroundColor: '#FBFAF9', borderWidth: 1, borderColor: '#E9E2DD', borderRadius: 14, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 8, marginBottom: 12 },
+  fieldLabelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  fieldLabel: { fontSize: 12, fontWeight: '700', color: '#5E5E5E', letterSpacing: 0.6 },
+  fieldInput: { fontSize: 15, color: '#222222', fontWeight: '600', minHeight: 24, paddingVertical: 0 },
+  multiLine: { minHeight: 60, textAlignVertical: 'top' },
+  primaryBtn: { marginTop: 10, backgroundColor: '#E76D2B', borderRadius: 14, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
+  primaryBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
 });

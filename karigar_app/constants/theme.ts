@@ -1,33 +1,36 @@
-// KARIGAR brand colours — from Figma
+// KARIGAR brand colours — tuned to the provided reference UI
 export const COLORS = {
-  primary:     '#E8622A',   // warm orange (CTA buttons, accents)
-  primaryDark: '#C94E1A',
-  primaryLight:'#F5A882',
-  background:  '#1E1E1E',   // dark card background
-  surface:     '#2A2A2A',
-  white:       '#FFFFFF',
-  offWhite:    '#F5F0EB',
-  text:        '#1A1A1A',
-  textLight:   '#666666',
-  textMuted:   '#999999',
-  success:     '#27AE60',
-  error:       '#E74C3C',
-  border:      '#E0D8D0',
-  cardBg:      '#FFFFFF',
-  screenBg:    '#FAF8F5',
+  primary: '#E76D2B',
+  primaryDark: '#D55A1D',
+  primaryLight: '#F7E1D5',
+  background: '#1F1F1F',
+  surface: '#2B2B2B',
+  white: '#FFFFFF',
+  offWhite: '#F3F3F0',
+  text: '#181818',
+  textLight: '#585858',
+  textMuted: '#8E8E8E',
+  success: '#2D8F56',
+  successSoft: '#EAF7EE',
+  error: '#D24A3B',
+  border: '#E5E2DF',
+  cardBg: '#FFFFFF',
+  screenBg: '#F5F2EE',
+  shellBg: '#F2EFEA',
+  navBg: '#F7F6F4',
 };
 
 export const FONTS = {
-  regular:  'System',
-  medium:   'System',
-  bold:     'System',
+  regular: 'System',
+  medium: 'System',
+  bold: 'System',
 };
 
 export const RADIUS = {
-  sm:  8,
-  md:  12,
-  lg:  16,
-  xl:  24,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 24,
   full: 999,
 };
 

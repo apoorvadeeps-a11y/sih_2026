@@ -62,12 +62,22 @@ type AppState = {
   addProduct: (p: Product) => void;
 };
 
+const defaultCatalog: CatalogResult = {
+  title: 'Clay Pottery Bowl',
+  title_hi: 'मिट्टी का बर्तन',
+  description: 'Handcrafted pottery bowl made from natural clay with a refined finish and artisanal charm.',
+  description_hi: 'प्राकृतिक मिट्टी से बना हाथ से निर्मित कढ़ाई वाला बर्तन, सुंदर फिनिश और कारीगरी वाली सुंदरता के साथ।',
+  category: 'Home Decor',
+  craft_technique: 'Terracotta',
+  source_language: 'hi',
+};
+
 export const useAppStore = create<AppState>((set) => ({
-  selectedLanguage: LANGUAGES[1], // Hindi default
+  selectedLanguage: LANGUAGES[1],
 
   setLanguage: (lang) => set({ selectedLanguage: lang }),
 
-  currentCatalog: null,
+  currentCatalog: defaultCatalog,
   setCurrentCatalog: (c) => set({ currentCatalog: c }),
 
   currentImageUri: null,
@@ -76,7 +86,25 @@ export const useAppStore = create<AppState>((set) => ({
   enhancedImageUrl: null,
   setEnhancedImageUrl: (url) => set({ enhancedImageUrl: url }),
 
-  products: [],
+  products: [
+    {
+      id: 'demo-1',
+      sku: 'KAR-001',
+      title: 'Clay Pottery Bowl',
+      title_hi: 'मिट्टी का बर्तन',
+      description: 'Handcrafted pottery bowl made from natural clay with a refined finish and artisanal charm.',
+      description_hi: 'प्राकृतिक मिट्टी से बना...',
+      category: 'Home Decor',
+      craft_technique: 'Terracotta',
+      material_cost: 180,
+      labor_hours: 3,
+      base_cost: 540,
+      suggested_price: 950,
+      confidence_band: 'High',
+      source_language: 'hi',
+      created_at: new Date().toISOString(),
+    },
+  ],
   setProducts: (p) => set({ products: p }),
   addProduct: (p) => set((s) => ({ products: [p, ...s.products] })),
 }));

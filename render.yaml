@@ -17,3 +17,14 @@ services:
         sync: false
       - key: PYTHON_VERSION
         value: 3.11.9
+
+  - type: web
+    name: artisan-frontend-sih2026
+    runtime: node
+    plan: free
+    rootDir: artisan-frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 24
